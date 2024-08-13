@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Earthquake Tracker</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f4f4f4;
+        }
+        h1 {
+            color: #333;
+        }
+        .results {
+            margin-top: 20px;
+        }
+        .earthquake {
+            background-color: #fff;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Earthquake Tracker</h1>
+
+    <form id="earthquake-form">
+        <label for="latitude">Latitude:</label><br>
+        <input type="text" id="latitude" name="latitude" required><br><br>
+        
+        <label for="longitude">Longitude:</label><br>
+        <input type="text" id="longitude" name="longitude" required><br><br>
+        
+        <label for="radius">Radius (miles):</label><br>
+        <input type="number" id="radius" name="radius" required><br><br>
+        
+        <input type="submit" value="Track Earthquakes">
+    </form>
+
+    <div class="results" id="results"></div>
+
+    <script>
+        document.getElementById('earthquake-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            let latitude = document.getElementById('latitude').value;
+            let longitude = document.getElementById('longitude').value;
+            let radius = document.getElementById('radius').value;
+
+            let apiUrl = `https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&latitude=${latitude}&longitude=${longitude}&maxradius=${radius}&minmagnitude=4`;
+
+            fetch(apiUrl)
+                .then(response => response.json())
+                .then(data => {
+                    let features = data.features;
+                    let resultsDiv = document.getElementById('results');
+                    resultsDiv.innerHTML = '';
+
+                    if (features.length > 0) {
+                        features.forEach(feature => {
+                            let properties = feature.properties;
+                            let earthquakeDiv = document.createElement('div');
+                            earthquakeDiv.className = 'earthquake';
+                            earthquakeDiv.innerHTML = `
+                                <strong>Location:</strong> ${properties.place}<br>
+                                <strong>Magnitude:</strong> ${properties.mag}<br>
+                                <strong>Time:</strong> ${new Date(properties.time).toLocaleString()}<br>
+                            `;
+                            resultsDiv.appendChild(earthquakeDiv);
+                        });
+                    } else {
+                        resultsDiv.innerHTML = '<p>No significant earthquakes found in the specified area.</p>';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching earthquake data:', error);
+                    document.getElementById('results').innerHTML = '<p>Error fetching earthquake data.</p>';
+                });
+        });
+    </script>
+
+</body>
+</html>
